@@ -44,6 +44,10 @@ router.get('/:path', async (request) => {
     const { value, metadata } = await queryNote(path)
 
     if (!metadata.pw) {
+        // Check for dev query parameter to return plain text
+        if (new URL(request.url).searchParams.has('dev')) {
+            return new Response(value, { headers: { 'Content-Type': 'text/plain' } });
+        }
         return returnPage('Edit', {
             lang,
             title,
