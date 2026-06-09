@@ -48,7 +48,8 @@ const HTML = ({ lang, title, content, ext = {}, tips, isEdit, showPwPrompt }) =>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${title} — Cloud Notepad</title>
     <link href="${CDN_PREFIX}/favicon.ico" rel="shortcut icon" type="image/ico" />
-    <link href="${CDN_PREFIX}/css/app.min.css" rel="stylesheet" media="screen" />
+    <link href="${CDN_PREFIX}/css/app.css" rel="stylesheet" media="screen" />
+    ${ext.mode === 'md' ? `<link href="${CDN_PREFIX}/css/github.min.css" rel="stylesheet" />` : ''}
 </head>
 <body>
     <div class="note-container">
@@ -70,8 +71,9 @@ const HTML = ({ lang, title, content, ext = {}, tips, isEdit, showPwPrompt }) =>
     ${FOOTER({ ...ext, isEdit, lang })}
     ${(ext.mode === 'md' || ext.share) ? `<script src="${CDN_PREFIX}/js/purify.min.js"></script>` : ''}
     ${ext.mode === 'md' ? `<script src="${CDN_PREFIX}/js/marked.min.js"></script>` : ''}
-    <script src="${CDN_PREFIX}/js/clip.min.js"></script>
-    <script src="${CDN_PREFIX}/js/app.min.js"></script>
+    ${ext.mode === 'md' ? `<script src="${CDN_PREFIX}/js/highlight.min.js"></script>` : ''}
+    <script src="${CDN_PREFIX}/js/clip.js"></script>
+    <script src="${CDN_PREFIX}/js/app.js"></script>
     ${showPwPrompt ? '<script>passwdPrompt()</script>' : ''}
 </body>
 </html>

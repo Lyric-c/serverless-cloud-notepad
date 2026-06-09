@@ -83,6 +83,11 @@ const renderMarkdown = (node, text) => {
     if (node) {
         const parseText = marked.parse(text)
         node.innerHTML = DOMPurify.sanitize(parseText)
+        if (typeof hljs !== 'undefined') {
+            node.querySelectorAll('pre code').forEach((block) => {
+                hljs.highlightElement(block)
+            })
+        }
     }
 }
 
