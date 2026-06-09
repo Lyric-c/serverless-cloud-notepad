@@ -202,7 +202,7 @@ textarea:focus {
     background: #f5f6f8;
     border-radius: 4px;
     overflow-x: auto;
-    font-size: 13px;
+    font-size: inherit;
     line-height: 1.45;
 }
 #preview-md code {
