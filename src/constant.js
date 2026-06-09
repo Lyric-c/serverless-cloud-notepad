@@ -1,5 +1,5 @@
-// static CDN
-export const CDN_PREFIX = '//gcore.jsdelivr.net/gh/s0urcelab/serverless-cloud-notepad@master/static'
+// static CDN — 优先从环境变量读取，留空则用默认值
+export const CDN_PREFIX = globalThis.CDN_PREFIX || '//gcore.jsdelivr.net/gh/s0urcelab/serverless-cloud-notepad@master/static'
 
 // server side salt
 export const SALT = SCN_SALT
