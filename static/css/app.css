@@ -147,9 +147,11 @@ textarea:focus {
 }
 
 /* ── Markdown 渲染排版（紧凑） ── */
+#preview-md {
+    line-height: 1.25;
+}
 #preview-md p {
-    margin: 0.2em 0;
-    line-height: 1.35;
+    margin: 0.15em 0;
 }
 #preview-md h1,
 #preview-md h2,
