@@ -72,14 +72,15 @@ jobs:
           git commit wrangler.toml -m "Updated KV binding IDs in wrangler.toml [skip ci]"
           git push origin HEAD
 
-      - name: Inject CDN_PREFIX from GitHub vars
-        if: vars.CDN_PREFIX != ''
+      - name: Inject CDN_PREFIX from GitHub secrets
         env:
-          CDN_PREFIX: ${{ vars.CDN_PREFIX }}
+          CDN_PREFIX: ${{ secrets.CDN_PREFIX }}
         run: |
-          echo "" >> wrangler.toml
-          echo "[vars]" >> wrangler.toml
-          echo "CDN_PREFIX = \"${CDN_PREFIX}\"" >> wrangler.toml
+          if [ -n "${CDN_PREFIX}" ]; then
+            echo "" >> wrangler.toml
+            echo "[vars]" >> wrangler.toml
+            echo "CDN_PREFIX = \"${CDN_PREFIX}\"" >> wrangler.toml
+          fi
 
       - name: Deploy to Cloudflare
         id: deploy_to_cf
