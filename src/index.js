@@ -43,26 +43,26 @@ router.get('/:path', async (request) => {
 
     const { value, metadata } = await queryNote(path)
 
-    if (!metadata.pw) {
-        return returnPage('Edit', {
-            lang,
-            title,
-            content: value,
-            ext: metadata,
+    // 密码保护 → 需要鉴权
+    const authed = !metadata.pw || await checkAuth(cookie, path)
+    if (!authed) {
+        return returnPage('NeedPasswd', { lang, title })
+    }
+
+    // 携带 ?dev 参数时直接返回原文
+    const url = new URL(request.url)
+    if (url.searchParams.has('dev')) {
+        return new Response(value, {
+            headers: { 'content-type': 'text/plain;charset=UTF-8' },
         })
     }
 
-    const valid = await checkAuth(cookie, path)
-    if (valid) {
-        return returnPage('Edit', {
-            lang,
-            title,
-            content: value,
-            ext: metadata,
-        })
-    }
-
-    return returnPage('NeedPasswd', { lang, title })
+    return returnPage('Edit', {
+        lang,
+        title,
+        content: value,
+        ext: metadata,
+    })
 })
 
 router.post('/:path/auth', async request => {
