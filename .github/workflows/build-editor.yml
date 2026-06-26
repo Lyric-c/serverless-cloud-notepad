@@ -1,0 +1,39 @@
+name: Build Editor
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - run: npm ci
+
+      - name: Check for outdated packages
+        continue-on-error: true
+        run: |
+          echo "::group::npm outdated"
+          npm outdated @do-md/core-react || true
+          echo "::endgroup::"
+          echo "If @do-md/core-react is listed above, update package.json and re-run this workflow."
+
+      - run: npm run build-editor
+
+      - name: Commit and push build artifacts
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add static/js/editor.js static/css/editor.css
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "Build editor artifacts [skip ci]"
+            git push
+          fi
