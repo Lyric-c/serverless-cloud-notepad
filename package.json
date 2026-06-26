@@ -3,19 +3,36 @@
   "version": "1.0.0",
   "author": "s0urce",
   "license": "MIT",
-  "devDependencies": {
-    "wrangler": "2.0.5"
-  },
   "private": true,
   "scripts": {
     "start": "wrangler dev",
-    "publish": "wrangler publish"
+    "publish": "npm run build-editor && wrangler publish",
+    "build-editor": "npx tsx build-editor.ts"
   },
   "dependencies": {
+    "@do-md/core-react": "^0.2.9",
     "@tsndr/cloudflare-worker-jwt": "^1.1.7",
     "cookie": "^0.5.0",
     "dayjs": "^1.11.2",
+    "dexie": "^4.0.11",
+    "immer": "^11.1.4",
     "itty-router": "^2.6.1",
-    "js-cookie": "^3.0.1"
+    "js-cookie": "^3.0.1",
+    "prismjs": "^1.30.0",
+    "react": "^19.2.4",
+    "react-dom": "^19.2.4"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4",
+    "@types/prismjs": "^1.26.6",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "daisyui": "^5.5.19",
+    "esbuild": "^0.25.0",
+    "postcss": "^8",
+    "tailwindcss": "^4",
+    "tsx": "^4",
+    "typescript": "^5",
+    "wrangler": "2.0.5"
   }
 }
