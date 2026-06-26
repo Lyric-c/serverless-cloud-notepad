@@ -51,7 +51,7 @@ function useAutoSave(
             seenInitialRef.current = true;
             return;
         }
-        const id = setTimeout(() => doSave(renderData), 600);
+        const id = setTimeout(() => doSave(renderData), 30000);
         return () => clearTimeout(id);
     }, [renderData, doSave]);
 }
