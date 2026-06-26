@@ -41,7 +41,8 @@ import { CloudEditor, type CloudEditorOptions } from "./CloudEditor";
         initialContent: string;
         path: string;
         metadata?: any;
-        editable?: boolean;
+        initialEditable?: boolean;
+        canToggle?: boolean;
         onSave?: (markdown: string) => Promise<void>;
         onPasswordSet?: (passwd: string) => Promise<void>;
         onShareToggle?: (enabled: boolean) => Promise<string | null>;
@@ -52,7 +53,8 @@ import { CloudEditor, type CloudEditorOptions } from "./CloudEditor";
                 initialContent={options.initialContent}
                 path={options.path}
                 metadata={options.metadata}
-                editable={options.editable ?? true}
+                initialEditable={options.initialEditable ?? true}
+                canToggle={options.canToggle ?? false}
                 onSave={options.onSave ?? (async () => {})}
                 onPasswordSet={options.onPasswordSet}
                 onShareToggle={options.onShareToggle}

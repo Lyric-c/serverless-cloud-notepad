@@ -45,7 +45,6 @@
     if (!data) return;
 
     var path = data.path;
-    var editable = data.editable !== false;
 
     // ── Save callback (only for editable mode) ──────────────────────
     function handleSave(markdown) {
@@ -63,41 +62,35 @@
     }
 
     // ── Password set callback ───────────────────────────────────────
-    var handlePasswordSet;
-    if (editable) {
-        handlePasswordSet = function (passwd) {
-            return fetch(location.pathname + "/pw", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ passwd: passwd }),
+    var handlePasswordSet = function (passwd) {
+        return fetch(location.pathname + "/pw", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ passwd: passwd }),
+        })
+            .then(function (r) {
+                return r.json();
             })
-                .then(function (r) {
-                    return r.json();
-                })
-                .then(function (res) {
-                    if (res.err !== 0) throw new Error(res.msg);
-                });
-        };
-    }
+            .then(function (res) {
+                if (res.err !== 0) throw new Error(res.msg);
+            });
+    };
 
     // ── Share toggle callback ───────────────────────────────────────
-    var handleShareToggle;
-    if (editable) {
-        handleShareToggle = function (enabled) {
-            return fetch(location.pathname + "/setting", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ share: enabled }),
+    var handleShareToggle = function (enabled) {
+        return fetch(location.pathname + "/setting", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ share: enabled }),
+        })
+            .then(function (r) {
+                return r.json();
             })
-                .then(function (r) {
-                    return r.json();
-                })
-                .then(function (res) {
-                    if (res.err !== 0) throw new Error(res.msg);
-                    return res.data || null;
-                });
-        };
-    }
+            .then(function (res) {
+                if (res.err !== 0) throw new Error(res.msg);
+                return res.data || null;
+            });
+    };
 
     // ── Mount the editor ────────────────────────────────────────────
     var root = document.getElementById("editor-root");
@@ -106,7 +99,8 @@
             initialContent: data.content,
             path: data.path,
             metadata: data.metadata,
-            editable: editable,
+            initialEditable: data.initialEditable !== false,
+            canToggle: data.canToggle === true,
             onSave: handleSave,
             onPasswordSet: handlePasswordSet,
             onShareToggle: handleShareToggle,

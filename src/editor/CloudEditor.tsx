@@ -33,7 +33,8 @@ export interface CloudEditorOptions {
     initialContent: string;
     path: string;
     metadata?: NoteMetadata;
-    editable?: boolean;
+    initialEditable?: boolean;
+    canToggle?: boolean;
     onSave: (markdown: string) => Promise<void>;
     onPasswordSet?: (passwd: string) => Promise<void>;
     onShareToggle?: (enabled: boolean) => Promise<string | null>;
@@ -62,16 +63,22 @@ function CloudEditorInner({
     path,
     metadata,
     editable,
+    canToggle,
+    onToggleEdit,
     onSave,
     onPasswordSet,
     onShareToggle,
+    contentRef,
 }: {
     path: string;
     metadata?: NoteMetadata;
     editable: boolean;
+    canToggle: boolean;
+    onToggleEdit: () => void;
     onSave: (markdown: string) => Promise<void>;
     onPasswordSet?: (passwd: string) => Promise<void>;
     onShareToggle?: (enabled: boolean) => Promise<string | null>;
+    contentRef: React.MutableRefObject<string>;
 }) {
     const renderData = useRenderData();
     const editor = useEditor();
@@ -112,6 +119,9 @@ function CloudEditorInner({
     doSaveRef.current = doSave;
     const renderDataRef = useRef(renderData);
     renderDataRef.current = renderData;
+
+    // Keep contentRef up-to-date so toggle-to-edit captures latest content
+    contentRef.current = toMarkdown(renderData) ?? contentRef.current;
 
     // Auto-save — only for editable mode
     if (editable) {
@@ -232,7 +242,15 @@ function CloudEditorInner({
                         {new Date(metadata.updateAt * 1000).toLocaleDateString()}
                     </span>
                 )}
-                {!editable && (
+                {canToggle && (
+                    <button
+                        onClick={onToggleEdit}
+                        className={`btn btn-xs ${editable ? "btn-ghost" : "btn-primary"}`}
+                    >
+                        {editable ? "Lock" : "Edit"}
+                    </button>
+                )}
+                {!canToggle && !editable && (
                     <span className="text-xs opacity-40">Read-only</span>
                 )}
             </div>
@@ -308,19 +326,34 @@ export function CloudEditor({
     initialContent,
     path,
     metadata,
-    editable = true,
+    initialEditable = true,
+    canToggle = false,
     onSave,
     onPasswordSet,
     onShareToggle,
 }: CloudEditorOptions) {
     const [version, setVersion] = useState(0);
+    const [editable, setEditable] = useState(initialEditable);
+    const contentRef = useRef(initialContent);
+
+    const handleToggleEdit = useCallback(() => {
+        setEditable((prev) => {
+            const next = !prev;
+            if (next) {
+                // Switching to editable: capture current content as initMd
+                // The contentRef is kept up-to-date by the inner component
+            }
+            setVersion((v) => v + 1);
+            return next;
+        });
+    }, []);
 
     return (
         <DOMDProvider
             key={version}
             editable={editable}
             placeholder="Start writing Markdown..."
-            initMd={initialContent}
+            initMd={contentRef.current}
             imageLoader={loadImage}
             codeTokenizer={tokenize}
         >
@@ -329,9 +362,12 @@ export function CloudEditor({
                 path={path}
                 metadata={metadata}
                 editable={editable}
+                canToggle={canToggle}
+                onToggleEdit={handleToggleEdit}
                 onSave={onSave}
                 onPasswordSet={onPasswordSet}
                 onShareToggle={onShareToggle}
+                contentRef={contentRef}
             />
         </DOMDProvider>
     );

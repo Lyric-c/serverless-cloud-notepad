@@ -4,7 +4,7 @@ import { CDN_PREFIX, SUPPORTED_LANG } from './constant'
 
 dayjs.extend(relativeTime)
 
-const HTML = ({ lang, title, content, ext = {}, tips, isEdit, showPwPrompt }) => `
+const HTML = ({ lang, title, content, ext = {}, tips, isEdit, initialEditable, showPwPrompt }) => `
 <!DOCTYPE html>
 <html lang="${lang}">
 <head>
@@ -24,7 +24,8 @@ const HTML = ({ lang, title, content, ext = {}, tips, isEdit, showPwPrompt }) =>
         content: ${JSON.stringify(content)},
         path: ${JSON.stringify(title)},
         metadata: ${JSON.stringify({ ...ext, updateAt: ext.updateAt })},
-        editable: ${isEdit}
+        initialEditable: ${initialEditable !== undefined ? initialEditable : true},
+        canToggle: ${isEdit}
       };
     </script>
     <script src="${CDN_PREFIX}/js/editor.js"></script>
@@ -37,7 +38,11 @@ const HTML = ({ lang, title, content, ext = {}, tips, isEdit, showPwPrompt }) =>
 </html>
 `
 
-export const Edit = data => HTML({ isEdit: true, ...data })
-export const Share = data => HTML({ isEdit: false, ...data })
+export const Edit = data => HTML({
+    isEdit: true,
+    initialEditable: !data.content,
+    ...data
+})
+export const Share = data => HTML({ isEdit: false, initialEditable: false, ...data })
 export const NeedPasswd = data => HTML({ tips: SUPPORTED_LANG[data.lang].tipEncrypt, showPwPrompt: true, ...data })
 export const Page404 = data => HTML({ tips: SUPPORTED_LANG[data.lang].tip404, ...data })
