@@ -1,6 +1,6 @@
 name = "cloud-notepad"
 main = "src/index.js"
-compatibility_date = "2022-05-13"
+compatibility_date = "2025-07-03"
 
 kv_namespaces = [
   { binding = "NOTES", id = "8e33926cc8d94e8b888196c0553ca901" },
