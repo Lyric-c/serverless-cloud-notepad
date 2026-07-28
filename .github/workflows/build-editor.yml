@@ -18,13 +18,8 @@ jobs:
 
       - run: npm ci
 
-      - name: Check for outdated packages
-        continue-on-error: true
-        run: |
-          echo "::group::npm outdated"
-          npm outdated @do-md/core-react || true
-          echo "::endgroup::"
-          echo "If @do-md/core-react is listed above, update package.json and re-run this workflow."
+      - name: Upgrade @do-md/core-react to latest
+        run: npm update @do-md/core-react
 
       - run: npm run build-editor
 
@@ -32,10 +27,10 @@ jobs:
         run: |
           git config user.email "actions@github.com"
           git config user.name "GitHub Actions"
-          git add static/js/editor.js static/css/editor.css
+          git add static/js/editor.js static/css/editor.css package.json package-lock.json
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
             git commit -m "Build editor artifacts [skip ci]"
-            git push
+            git push origin HEAD
           fi
