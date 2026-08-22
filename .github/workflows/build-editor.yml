@@ -16,12 +16,24 @@ jobs:
           node-version: '22'
           cache: npm
 
-      - run: npm ci
+      - name: Install dependencies
+        run: npm ci
 
+      # `npm install @do-md/core-react@latest` 会跨 minor/major 追到 npm 最新版，
+      # 并同步更新 package.json / package-lock.json（`npm update` 受 package.json
+      # 的 semver 范围约束，无法跨 minor 升级）。
       - name: Upgrade @do-md/core-react to latest
-        run: npm update @do-md/core-react
+        run: npm install @do-md/core-react@latest
 
-      - run: npm run build-editor
+      - name: Show upgraded version
+        run: node -p "'@do-md/core-react: ' + require('./node_modules/@do-md/core-react/package.json').version"
+
+      # 升级 core 后 API 可能变化，先用类型检查兜底，失败即中断，避免 push 坏产物。
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build editor
+        run: npm run build-editor
 
       - name: Commit and push build artifacts
         run: |
@@ -31,6 +43,7 @@ jobs:
           if git diff --cached --quiet; then
             echo "No changes to commit"
           else
-            git commit -m "Build editor artifacts [skip ci]"
+            VERSION=$(node -p "require('./node_modules/@do-md/core-react/package.json').version")
+            git commit -m "chore: rebuild editor artifacts (@do-md/core-react@${VERSION}) [skip ci]"
             git push origin HEAD
           fi

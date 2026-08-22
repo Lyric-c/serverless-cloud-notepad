@@ -3,7 +3,6 @@ import {
     useEffect,
     useRef,
     useState,
-    useSyncExternalStore,
 } from "react";
 import {
     DOMD,
@@ -14,7 +13,7 @@ import {
     useEditorStoreApi,
     useRenderData,
 } from "@do-md/core-react";
-import { tokenize, getGrammarVersion, subscribeGrammarLoad } from "./prism";
+import { tokenize } from "./prism";
 import { loadImage } from "./imageStorage";
 import { useLatest } from "./useLatest";
 import { ImageDropHandler } from "./useImageDrop";
@@ -82,6 +81,7 @@ function CloudEditorInner({
 }) {
     const renderData = useRenderData();
     const editor = useEditor();
+    const storeApi = useEditorStoreApi();
     const isEditable = useEditorStore((store) => store.isEditable);
 
     const [saving, setSaving] = useState(false);
@@ -140,23 +140,6 @@ function CloudEditorInner({
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
     }, [editable]);
-
-    // Re-parse when Prism grammars load
-    const grammarVersion = useSyncExternalStore(
-        subscribeGrammarLoad,
-        getGrammarVersion,
-        () => 0,
-    );
-    const baseVersionRef = useRef(grammarVersion);
-    useEffect(() => {
-        if (grammarVersion <= baseVersionRef.current) return;
-        if (!editor) return;
-        const id = setTimeout(() => {
-            const md = toMarkdown(renderDataRef.current) ?? "";
-            editor.editorStore.resetMD(md);
-        }, 50);
-        return () => clearTimeout(id);
-    }, [grammarVersion, editor]);
 
     // Share link state
     const [shareMd5, setShareMd5] = useState<string | null>(
@@ -297,7 +280,7 @@ function CloudEditorInner({
                             }}
                             placeholder="Enter password..."
                             autoFocus
-                            className="input input-bordered input-sm w-full mb-4"
+                            className="input input-sm w-full mb-4"
                         />
                         <div className="flex justify-end gap-2">
                             <button

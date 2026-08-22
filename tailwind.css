@@ -1,4 +1,4 @@
-@import "tailwindcss";
+@import "tailwindcss" source("./src/editor");
 
 @plugin "daisyui" {
     themes: false;
