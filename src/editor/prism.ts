@@ -1,13 +1,15 @@
-import Prism, { type Token, type TokenStream } from "prismjs";
+import Prism from "prismjs";
+import type { ComponentProps } from "react";
+import type { DOMDProvider } from "@do-md/core-react";
 
-// domd 的 codeTokenizer 期望的 token 形状：content 只能是 string 或 Token[]，
-// 不允许裸 Token（见 @do-md/core-react 的 codeTokenizer 签名）。
-export type CodeToken = string | {
-    type: string;
-    content: string | CodeToken[];
-    alias?: string | string[];
-    length?: number;
-};
+// 对齐 domd 官方 demo（common/lib/prism.ts）：token 类型直接从
+// DOMDProvider 的 codeTokenizer 推导，tokenize() 对 Prism 结果做一次 cast。
+// Prism 的 Token 结构比 core 的 Token 更宽松（嵌套 content 可能是单个 Token
+// 而不是数组），但 core 在运行时能正常遍历 Prism token stream，所以在此
+// cast 一次即可，无需额外的归一化层。
+export type CodeToken = ReturnType<
+    NonNullable<ComponentProps<typeof DOMDProvider>["codeTokenizer"]>
+>[number];
 
 // DOMD calls `tokenize` manually per code block. Disable Prism's
 // DOMContentLoaded auto-highlight.
@@ -17,9 +19,9 @@ if (typeof window !== "undefined") {
 
 // ── Grammar registration ────────────────────────────────────────────────
 //
-// 编辑器产物是 esbuild 的 IIFE 单文件 bundle，无法做代码分割，因此运行时
-// `import("prismjs/components/...")` 在浏览器里会 404。所有要支持的语法都
-// 必须在这里静态引入，让 esbuild 打进 bundle。
+// 官方 demo 用 `import("prismjs/components/...")` 按需动态加载，但我们的
+// 产物是 esbuild 的 IIFE 单文件 bundle（无法代码分割），运行时动态 import
+// 在浏览器里必然 404。因此所有要支持的语法都必须在这里静态引入。
 import "prismjs/components/prism-markup"; // html / xml / svg
 import "prismjs/components/prism-markup-templating";
 import "prismjs/components/prism-css";
@@ -73,32 +75,11 @@ function normalize(lang: string): string {
     return ALIAS[k] ?? k;
 }
 
-// Prism 的 Token.content 是 TokenStream（允许裸 Token），domd 渲染器只处理
-// `string | Token[]`。这里递归归一化，把裸 Token 包成数组，避免 domd 在
-// 提取文本时对非数组调用 forEach 报错。
-function normalizeContent(content: TokenStream): string | CodeToken[] {
-    if (typeof content === "string") return content;
-    if (Array.isArray(content)) return content.map(normalizeToken);
-    return [normalizeToken(content)];
-}
-
-function normalizeToken(token: string | Token): CodeToken {
-    if (typeof token === "string") return token;
-    return {
-        type: token.type,
-        content: normalizeContent(token.content),
-        ...(token.alias ? { alias: token.alias } : {}),
-        ...(typeof token.length === "number" ? { length: token.length } : {}),
-    };
-}
-
 export function tokenize(code: string, lang?: string): CodeToken[] {
-    // 空代码块（刚输入 ```sql 还没内容）直接返回空数组。Prism.tokenize("")
-    // 会返回 [""]，给 domd 的空 PreCode 塞进一个空 token 节点，破坏光标定位。
     if (!lang || !code) return [];
     const norm = normalize(lang);
     const grammar = Prism.languages[norm];
-    if (grammar) return Prism.tokenize(code, grammar).map(normalizeToken);
+    if (grammar) return Prism.tokenize(code, grammar) as CodeToken[];
     return [];
 }
 

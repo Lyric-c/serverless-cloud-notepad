@@ -1040,6 +1040,9 @@
   .flex {
     display: flex;
   }
+  .inline {
+    display: inline;
+  }
   .h-9 {
     height: calc(var(--spacing) * 9);
   }

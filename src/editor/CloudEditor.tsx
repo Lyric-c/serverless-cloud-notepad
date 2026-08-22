@@ -8,7 +8,6 @@ import {
     DOMD,
     DOMDProvider,
     toMarkdown,
-    useEditor,
     useEditorStore,
     useEditorStoreApi,
     useRenderData,
@@ -41,9 +40,11 @@ export interface CloudEditorOptions {
 
 // ── Auto-save hook ───────────────────────────────────────────────────────────
 
+// 始终调用（遵守 Hooks 规则），内部根据 enabled 决定是否真正保存。
 function useAutoSave(
     renderData: ReturnType<typeof useRenderData>,
     doSave: (data: ReturnType<typeof useRenderData>) => Promise<void>,
+    enabled: boolean,
 ) {
     const seenInitialRef = useRef(false);
     useEffect(() => {
@@ -51,9 +52,10 @@ function useAutoSave(
             seenInitialRef.current = true;
             return;
         }
+        if (!enabled) return;
         const id = setTimeout(() => doSave(renderData), 30000);
         return () => clearTimeout(id);
-    }, [renderData, doSave]);
+    }, [renderData, doSave, enabled]);
 }
 
 // ── CloudEditor Component ────────────────────────────────────────────────────
@@ -61,26 +63,19 @@ function useAutoSave(
 function CloudEditorInner({
     path,
     metadata,
-    editable,
     canToggle,
-    onToggleEdit,
     onSave,
     onPasswordSet,
     onShareToggle,
-    contentRef,
 }: {
     path: string;
     metadata?: NoteMetadata;
-    editable: boolean;
     canToggle: boolean;
-    onToggleEdit: () => void;
     onSave: (markdown: string) => Promise<void>;
     onPasswordSet?: (passwd: string) => Promise<void>;
     onShareToggle?: (enabled: boolean) => Promise<string | null>;
-    contentRef: React.MutableRefObject<string>;
 }) {
     const renderData = useRenderData();
-    const editor = useEditor();
     const storeApi = useEditorStoreApi();
     const isEditable = useEditorStore((store) => store.isEditable);
 
@@ -91,10 +86,10 @@ function CloudEditorInner({
     // Auto-focus
     const didFocusRef = useRef(false);
     useEffect(() => {
-        if (!editor || didFocusRef.current) return;
+        if (!storeApi || didFocusRef.current) return;
         didFocusRef.current = true;
-        editor.focus?.();
-    }, [editor]);
+        storeApi.focus();
+    }, [storeApi]);
 
     // Save logic
     const metaRef = useLatest(metadata);
@@ -120,17 +115,12 @@ function CloudEditorInner({
     const renderDataRef = useRef(renderData);
     renderDataRef.current = renderData;
 
-    // Keep contentRef up-to-date so toggle-to-edit captures latest content
-    contentRef.current = toMarkdown(renderData) ?? contentRef.current;
-
     // Auto-save — only for editable mode
-    if (editable) {
-        useAutoSave(renderData, doSave);
-    }
+    useAutoSave(renderData, doSave, isEditable);
 
     // Cmd/Ctrl+S — only for editable mode
     useEffect(() => {
-        if (!editable) return;
+        if (!isEditable) return;
         const handler = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && e.key === "s") {
                 e.preventDefault();
@@ -139,7 +129,13 @@ function CloudEditorInner({
         };
         window.addEventListener("keydown", handler);
         return () => window.removeEventListener("keydown", handler);
-    }, [editable]);
+    }, [isEditable]);
+
+    // Toggle edit/read-only via store.setEditable — hot switch, no remount
+    // (the DOMDProvider is never re-keyed; its content stays intact).
+    const handleToggleEdit = useCallback(() => {
+        storeApi?.setEditable(!isEditable);
+    }, [storeApi, isEditable]);
 
     // Share link state
     const [shareMd5, setShareMd5] = useState<string | null>(
@@ -191,7 +187,7 @@ function CloudEditorInner({
                     /{path}
                 </span>
 
-                {editable && onShareToggle && (
+                {isEditable && onShareToggle && (
                     <button
                         onClick={handleShareToggle}
                         className={`btn btn-xs ${shareMd5 ? "btn-primary" : "btn-ghost"}`}
@@ -201,7 +197,7 @@ function CloudEditorInner({
                     </button>
                 )}
 
-                {editable && onPasswordSet && (
+                {isEditable && onPasswordSet && (
                     <button
                         onClick={() => {
                             setPwInput("");
@@ -214,10 +210,10 @@ function CloudEditorInner({
                     </button>
                 )}
 
-                {editable && saving && (
+                {isEditable && saving && (
                     <span className="text-xs opacity-50">Saving...</span>
                 )}
-                {editable && saved && (
+                {isEditable && saved && (
                     <span className="text-xs text-success">Saved</span>
                 )}
                 {metadata?.updateAt && (
@@ -227,13 +223,13 @@ function CloudEditorInner({
                 )}
                 {canToggle && (
                     <button
-                        onClick={onToggleEdit}
-                        className={`btn btn-xs ${editable ? "btn-ghost" : "btn-primary"}`}
+                        onClick={handleToggleEdit}
+                        className={`btn btn-xs ${isEditable ? "btn-ghost" : "btn-primary"}`}
                     >
-                        {editable ? "Lock" : "Edit"}
+                        {isEditable ? "Lock" : "Edit"}
                     </button>
                 )}
-                {!canToggle && !editable && (
+                {!canToggle && !isEditable && (
                     <span className="text-xs opacity-40">Read-only</span>
                 )}
             </div>
@@ -243,7 +239,7 @@ function CloudEditorInner({
                 className="flex-1 overflow-y-auto"
                 onClick={(e) => {
                     if (domdRef.current?.contains(e.target as Node)) return;
-                    editor?.focus();
+                    storeApi?.focus();
                 }}
             >
                 <div className="max-w-3xl mx-auto px-6 py-8">
@@ -315,42 +311,24 @@ export function CloudEditor({
     onPasswordSet,
     onShareToggle,
 }: CloudEditorOptions) {
-    const [version, setVersion] = useState(0);
-    const [editable, setEditable] = useState(initialEditable);
-    const contentRef = useRef(initialContent);
-
-    const handleToggleEdit = useCallback(() => {
-        setEditable((prev) => {
-            const next = !prev;
-            if (next) {
-                // Switching to editable: capture current content as initMd
-                // The contentRef is kept up-to-date by the inner component
-            }
-            setVersion((v) => v + 1);
-            return next;
-        });
-    }, []);
-
+    // editable 只在构造时作为初始值；运行期的编辑/只读切换通过
+    // store.setEditable 热切换，绝不重新挂载 DOMDProvider（对齐 domd demo）。
     return (
         <DOMDProvider
-            key={version}
-            editable={editable}
+            editable={initialEditable}
             placeholder="Start writing Markdown..."
-            initMd={contentRef.current}
+            initMd={initialContent}
             imageLoader={loadImage}
             codeTokenizer={tokenize}
         >
-            {editable && <ImageDropHandler />}
+            <ImageDropHandler />
             <CloudEditorInner
                 path={path}
                 metadata={metadata}
-                editable={editable}
                 canToggle={canToggle}
-                onToggleEdit={handleToggleEdit}
                 onSave={onSave}
                 onPasswordSet={onPasswordSet}
                 onShareToggle={onShareToggle}
-                contentRef={contentRef}
             />
         </DOMDProvider>
     );
