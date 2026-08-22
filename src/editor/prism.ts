@@ -93,7 +93,9 @@ function normalizeToken(token: string | Token): CodeToken {
 }
 
 export function tokenize(code: string, lang?: string): CodeToken[] {
-    if (!lang) return [];
+    // 空代码块（刚输入 ```sql 还没内容）直接返回空数组。Prism.tokenize("")
+    // 会返回 [""]，给 domd 的空 PreCode 塞进一个空 token 节点，破坏光标定位。
+    if (!lang || !code) return [];
     const norm = normalize(lang);
     const grammar = Prism.languages[norm];
     if (grammar) return Prism.tokenize(code, grammar).map(normalizeToken);
