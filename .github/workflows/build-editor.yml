@@ -26,7 +26,8 @@ jobs:
         run: npm install @do-md/core-react@latest
 
       - name: Show upgraded version
-        run: node -p "'@do-md/core-react: ' + require('./node_modules/@do-md/core-react/package.json').version"
+        run: |
+          echo "@do-md/core-react: $(node -p "require('./node_modules/@do-md/core-react/package.json').version")"
 
       # 升级 core 后 API 可能变化，先用类型检查兜底，失败即中断，避免 push 坏产物。
       - name: Type check
