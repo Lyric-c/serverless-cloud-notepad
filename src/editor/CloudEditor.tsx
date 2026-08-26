@@ -504,8 +504,8 @@ function CloudEditorInner({
             <div className="shrink-0 min-h-9 flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-1 text-xs text-base-content/50 bg-base-200 border-b border-base-300 select-none">
                 {isEditable && <FormatTools />}
 
-                <span className="truncate font-mono text-xs flex-1 basis-24 min-w-0 order-last w-full sm:order-none sm:w-auto">
-                    /{path}
+                <span className="truncate font-mono text-xs flex-1 basis-24 min-w-0 order-last w-full sm:order-none sm:w-auto" title={`/${path}`}>
+                    /{path.length > 12 ? `${path.slice(0, 6)}…${path.slice(-4)}` : path}
                 </span>
 
                 {isEditable && onShareToggle && (
