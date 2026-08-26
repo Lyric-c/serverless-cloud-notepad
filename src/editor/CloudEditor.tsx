@@ -460,8 +460,10 @@ function CloudEditorInner({
     }, [storeApi, isEditable]);
 
     // Share link state
+    // metadata.share 在服务端是布尔开关；只有旧数据可能带 md5 字符串。
+    // 这里做类型收窄，避免对非字符串调用 .slice 导致崩溃。
     const [shareMd5, setShareMd5] = useState<string | null>(
-        metadata?.share ?? null,
+        typeof metadata?.share === "string" ? metadata.share : null,
     );
     const [showShareCopied, setShowShareCopied] = useState(false);
     const [showPwModal, setShowPwModal] = useState(false);
