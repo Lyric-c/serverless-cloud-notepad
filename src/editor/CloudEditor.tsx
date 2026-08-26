@@ -335,14 +335,11 @@ function ChecklistIcon({ className }: { className?: string }) {
     );
 }
 
-function FormatToolbar() {
+function FormatTools() {
     const storeApi = useEditorStoreApi();
 
     return (
-        <div className="shrink-0 border-b border-base-300 bg-base-200 select-none">
-            {/* 与编辑区同一列宽容器，但按钮组整体水平居中 */}
-            <div className="max-w-3xl mx-auto px-6 flex justify-center">
-                <div className="flex items-center gap-0.5 text-sm py-1">
+        <div className="flex items-center gap-0.5 text-sm">
                     <FormatDropdown />
 
                     <button
@@ -365,8 +362,6 @@ function FormatToolbar() {
                     >
                         <ChecklistIcon className="size-4" />
                     </button>
-                </div>
-            </div>
         </div>
     );
 }
@@ -505,9 +500,11 @@ function CloudEditorInner({
 
     return (
         <div className="fixed inset-0 flex flex-col bg-base-100 overflow-hidden">
-            {/* Top toolbar */}
-            <div className="shrink-0 h-9 flex items-center gap-2 px-3 text-xs text-base-content/50 bg-base-200 border-b border-base-300 select-none">
-                <span className="truncate flex-1 font-mono text-xs">
+            {/* Top toolbar：左侧格式工具，中间路径（可收缩），右侧操作按钮 */}
+            <div className="shrink-0 min-h-9 flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-1 text-xs text-base-content/50 bg-base-200 border-b border-base-300 select-none">
+                {isEditable && <FormatTools />}
+
+                <span className="truncate font-mono text-xs flex-1 basis-24 min-w-0 order-last w-full sm:order-none sm:w-auto">
                     /{path}
                 </span>
 
@@ -557,9 +554,6 @@ function CloudEditorInner({
                     <span className="text-xs opacity-40">Read-only</span>
                 )}
             </div>
-
-            {/* Formatting toolbar */}
-            {isEditable && <FormatToolbar />}
 
             {/* Editor area */}
             <div
