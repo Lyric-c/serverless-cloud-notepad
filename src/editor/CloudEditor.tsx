@@ -539,7 +539,7 @@ function CloudEditorInner({
                         <span className="text-xs text-success">Saved</span>
                     )}
                     {metadata?.updateAt && (
-                        <span className="text-xs opacity-40">
+                        <span className="text-xs opacity-40 hidden sm:inline">
                             {new Date(metadata.updateAt * 1000).toLocaleDateString()}
                         </span>
                     )}
