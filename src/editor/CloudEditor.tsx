@@ -508,51 +508,54 @@ function CloudEditorInner({
 
                 {isEditable ? <FormatTools /> : <span />}
 
-                {isEditable && onShareToggle && (
-                    <button
-                        onClick={handleShareToggle}
-                        className={`btn btn-xs ${shareMd5 ? "btn-primary" : "btn-ghost"}`}
-                        title={shareMd5 ? "Unshare" : "Share"}
-                    >
-                        {showShareCopied ? "Copied!" : shareMd5 ? `Shared: ${shareMd5.slice(0, 6)}...` : "Share"}
-                    </button>
-                )}
+                <span className="flex items-center justify-self-end gap-2 min-w-0">
+                    {isEditable && onShareToggle && (
+                        <button
+                            onClick={handleShareToggle}
+                            className={`btn btn-xs ${shareMd5 ? "btn-primary" : "btn-ghost"}`}
+                            title={shareMd5 ? "Unshare" : "Share"}
+                        >
+                            {showShareCopied ? "Copied!" : shareMd5 ? `Shared: ${shareMd5.slice(0, 6)}...` : "Share"}
+                        </button>
+                    )}
 
-                {isEditable && onPasswordSet && (
-                    <button
-                        onClick={() => {
-                            setPwInput("");
-                            setShowPwModal(true);
-                        }}
-                        className={`btn btn-xs ${hasPassword ? "btn-warning" : "btn-ghost"}`}
-                        title={hasPassword ? "Change password" : "Set password"}
-                    >
-                        {hasPassword ? "🔒" : "🔓"}
-                    </button>
-                )}
+                    {isEditable && onPasswordSet && (
+                        <button
+                            onClick={() => {
+                                setPwInput("");
+                                setShowPwModal(true);
+                            }}
+                            className={`btn btn-xs ${hasPassword ? "btn-warning" : "btn-ghost"}`}
+                            title={hasPassword ? "Change password" : "Set password"}
+                        >
+                            {hasPassword ? "🔒" : "🔓"}
+                        </button>
+                    )}
 
-                {isEditable && saving && (
-                    <span className="text-xs opacity-50">Saving...</span>
-                )}
-                {isEditable && saved && (
-                    <span className="text-xs text-success">Saved</span>
-                )}
-                {metadata?.updateAt && (
-                    <span className="text-xs opacity-40">
-                        {new Date(metadata.updateAt * 1000).toLocaleDateString()}
-                    </span>
-                )}
-                {canToggle && (
-                    <button
-                        onClick={handleToggleEdit}
-                        className={`btn btn-xs ${isEditable ? "btn-ghost" : "btn-primary"}`}
-                    >
-                        {isEditable ? "Lock" : "Edit"}
-                    </button>
-                )}
-                {!canToggle && !isEditable && (
-                    <span className="text-xs opacity-40">Read-only</span>
-                )}
+                    {isEditable && saving && (
+                        <span className="text-xs opacity-50">Saving...</span>
+                    )}
+                    {isEditable && saved && (
+                        <span className="text-xs text-success">Saved</span>
+                    )}
+                    {metadata?.updateAt && (
+                        <span className="text-xs opacity-40">
+                            {new Date(metadata.updateAt * 1000).toLocaleDateString()}
+                        </span>
+                    )}
+                    {canToggle && (
+                        <button
+                            onClick={handleToggleEdit}
+                            className={`btn btn-xs ${isEditable ? "btn-ghost" : "btn-primary"}`}
+                        >
+                            {isEditable ? "Lock" : "Edit"}
+                        </button>
+                    )}
+                    {!canToggle && !isEditable && (
+                        <span className="text-xs opacity-40">Read-only</span>
+                    )}
+                </span>
+
             </div>
 
             {/* Editor area */}

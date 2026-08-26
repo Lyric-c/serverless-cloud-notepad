@@ -1460,6 +1460,9 @@
   .max-w-\[calc\(100\%-1\.25rem\)\] {
     max-width: calc(100% - 1.25rem);
   }
+  .min-w-0 {
+    min-width: 0;
+  }
   .min-w-36 {
     min-width: calc(var(--spacing) * 36);
   }
@@ -1536,6 +1539,9 @@
   }
   .gap-x-2 {
     column-gap: calc(var(--spacing) * 2);
+  }
+  .justify-self-end {
+    justify-self: flex-end;
   }
   .justify-self-start {
     justify-self: flex-start;
