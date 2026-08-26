@@ -27,6 +27,7 @@ import {
     type HeadingLevel,
     type ListKind,
 } from "@do-md/commands";
+import { tableRenderComponent } from "./TableElement";
 import { tokenize } from "./prism";
 import { loadImage } from "./imageStorage";
 import { useLatest } from "./useLatest";
@@ -73,10 +74,10 @@ function useAutoSave(
     }, [renderData, doSave, enabled]);
 }
 
-// ── Formatting toolbar（对齐 domd editor 页样式：Aa 下拉菜单 + 图标插入按钮）───
+// ── Formatting toolbar（Aa 格式下拉菜单 + 图标插入按钮）──────────────────────
 
 // 菜单/按钮通用：阻止 pointerdown/mousedown 默认，避免点击时编辑器先失焦、
-// startCursorInfo 丢失导致命令 no-op（同 domd 官方 format-dropdown 的 keepSelection）。
+// startCursorInfo 丢失导致命令 no-op。
 const keepSelection = {
     onPointerDown: (e: React.PointerEvent) => e.preventDefault(),
     onMouseDown: (e: React.MouseEvent) => e.preventDefault(),
@@ -98,7 +99,7 @@ function ChevronIcon() {
     );
 }
 
-// 与 domd features/icons 同源的 1024 网格填充图标
+// 1024 网格填充风格图标
 function TableIcon({ className }: { className?: string }) {
     return (
         <svg viewBox="0 0 1024 1024" fill="currentColor" className={className} aria-hidden="true">
@@ -174,7 +175,7 @@ function FormatDropdown() {
     const [open, setOpen] = useState(false);
     const [blockState, setBlockState] = useState<BlockFormatState>(EMPTY_BLOCK_FORMAT_STATE);
 
-    // 块样式快照需要一次完整 toMarkdown()，只在菜单打开瞬间读取（同 domd 做法）。
+    // 块样式快照需要一次完整 toMarkdown()，开销较大，只在菜单打开瞬间读取。
     const refreshBlockState = useCallback(
         () => setBlockState(readBlockFormatState(storeApi ?? null)),
         [storeApi],
@@ -636,9 +637,10 @@ export function CloudEditor({
     onShareToggle,
 }: CloudEditorOptions) {
     // editable 只在构造时作为初始值；运行期的编辑/只读切换通过
-    // store.setEditable 热切换，绝不重新挂载 DOMDProvider（对齐 domd demo）。
+    // store.setEditable 热切换，绝不重新挂载 DOMDProvider。
     return (
         <DOMDProvider
+            renderComponent={tableRenderComponent}
             editable={initialEditable}
             placeholder="Start writing Markdown..."
             initMd={initialContent}
