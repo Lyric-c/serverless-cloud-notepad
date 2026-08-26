@@ -208,7 +208,7 @@ router.post('/:path', async request => {
 
 router.all('*', (request) => {
     const lang = getI18n(request)
-    returnPage('Page404', { lang, title: '404' })
+    return returnPage('Page404', { lang, title: '404' })
 })
 
 addEventListener('fetch', event => {
