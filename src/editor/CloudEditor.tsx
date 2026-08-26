@@ -500,13 +500,13 @@ function CloudEditorInner({
 
     return (
         <div className="fixed inset-0 flex flex-col bg-base-100 overflow-hidden">
-            {/* Top toolbar：左侧格式工具，中间路径（可收缩），右侧操作按钮 */}
-            <div className="shrink-0 min-h-9 flex items-center flex-wrap gap-x-2 gap-y-1 px-3 py-1 text-xs text-base-content/50 bg-base-200 border-b border-base-300 select-none">
-                {isEditable && <FormatTools />}
-
-                <span className="truncate font-mono text-xs flex-1 basis-24 min-w-0 order-last w-full sm:order-none sm:w-auto" title={`/${path}`}>
+            {/* Top toolbar：三栏网格——路径靠左（可截断）、格式工具居中、操作按钮靠右 */}
+            <div className="shrink-0 min-h-9 grid grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center gap-x-2 px-3 py-1 text-xs text-base-content/50 bg-base-200 border-b border-base-300 select-none">
+                <span className="truncate font-mono text-xs justify-self-start" title={`/${path}`}>
                     /{path.length > 12 ? `${path.slice(0, 6)}…${path.slice(-4)}` : path}
                 </span>
+
+                {isEditable ? <FormatTools /> : <span />}
 
                 {isEditable && onShareToggle && (
                     <button
