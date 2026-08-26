@@ -1,0 +1,67 @@
+# 推送后自动构建 editor 产物。
+#
+# 与 build-editor.yml（手动触发）的分工：
+#   - 本工作流：只做「安装 → 类型检查 → 构建 → 提交产物」，不升级任何依赖，
+#     保证产物与 package-lock.json 锁定的版本一致。
+#   - build-editor.yml（workflow_dispatch）：主动升级 @do-md/core-react 到
+#     最新版并重建，用于跟进内核更新，按需手动触发。
+#
+# 源码变更被推送到 master 后自动运行；产物有变化时以独立提交追加，
+# 提交信息带 [skip ci] 防止死循环。
+
+name: Build Editor On Push
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - "src/editor/**"
+      - "build-editor.ts"
+      - "tailwind.css"
+      - "prism-theme.css"
+      - "postcss.config.mjs"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/build-editor-on-push.yml"
+
+concurrency:
+  group: build-editor-on-push-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # 产物以独立提交追加，需要完整历史权限
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Type check
+        run: npx tsc --noEmit
+
+      - name: Build editor
+        run: npm run build-editor
+
+      - name: Commit and push build artifacts
+        run: |
+          git config user.email "actions@github.com"
+          git config user.name "GitHub Actions"
+          git add static/js/editor.js static/css/editor.css
+          if git diff --cached --quiet; then
+            echo "No changes to commit"
+          else
+            git commit -m "chore: rebuild editor artifacts [skip ci]"
+            git pull --rebase origin HEAD
+            git push origin HEAD
+          fi
